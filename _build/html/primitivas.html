@@ -1,0 +1,184 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>2. Estructura de la información en OSM &mdash; DownloadOSMData 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="DownloadOSMData 1.0 documentation" href="index.html" />
+    <link rel="next" title="3. Descarga de datos desde OpenStreetMap" href="descargaosm.html" />
+    <link rel="prev" title="1. Introducción" href="intro.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="descargaosm.html" title="3. Descarga de datos desde OpenStreetMap"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="intro.html" title="1. Introducción"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">DownloadOSMData 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <p># primitivas</p>
+<div class="section" id="estructura-de-la-informacion-en-osm">
+<h1>2. Estructura de la información en OSM<a class="headerlink" href="#estructura-de-la-informacion-en-osm" title="Permalink to this headline">¶</a></h1>
+<p>OSM es una base de datos de información geográfica. Los elementos o fenómenos existente en la realidad se modelizan mediante la incorporación de dos niveles de información:</p>
+<ul class="simple">
+<li>Información espacial: contiene la información relativa a la geometría y posición del fenómeno. Responde a la pregunta <strong>¿Dónde?</strong></li>
+<li>Información temática: contiene las características y propiedades del fenómeno. Responde a la pregunta <strong>¿Qué?</strong></li>
+</ul>
+<p>En la base de datos de OSM a cada fenómeo de la realidad que se quiera modelar se le asigna una primitiva geométrica que le dota de la información espacial. Hay tres tipos de primitivas geométricas:</p>
+<ul class="simple">
+<li>Nodes: corresponden a la definición de un punto</li>
+<li>Ways: corresponden a la definición de una línea o de un polígono.</li>
+<li>Relations: combinan Nodes, Ways y otras Relations para definir geometrías o elementos complejos</li>
+</ul>
+<p>La información temática se modela mediante etiquetas, <em>tags</em>, que son parejas de cadenas de texto en la forma <em>key-value</em>. Cada primitiva geométrica asociada a un fenómeno de la realidad llevará asociadas un número indeterminado de etiquetas que permitirán definir su información temática. Se pueden consultar las etiquetas más frecuentes en la página:</p>
+<p><a class="reference external" href="http://wiki.openstreetmap.org/wiki/Map_Features">http://wiki.openstreetmap.org/wiki/Map_Features</a></p>
+<div class="section" id="node">
+<h2>2.1. Node<a class="headerlink" href="#node" title="Permalink to this headline">¶</a></h2>
+<p>Un Node representa una geometría puntual. Son los únicos elementos que tienen coordenadas.
+Un ejemplo de un Node en formato <em>OSM</em>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>&lt;node id=&quot;25496583&quot; lat=&quot;51.5173639&quot; lon=&quot;-0.140043&quot; version=&quot;1&quot; changeset=&quot;203496&quot;
+      user=&quot;80n&quot; uid=&quot;1238&quot; visible=&quot;true&quot; timestamp=&quot;2007-01-28T11:40:26Z&quot;/&gt;
+  &lt;tag k=&quot;highway&quot; v=&quot;traffic_signals&quot;&gt;
+&lt;/node&gt;
+</pre></div>
+</div>
+</div>
+<div class="section" id="way">
+<h2>2.2. Way<a class="headerlink" href="#way" title="Permalink to this headline">¶</a></h2>
+<p>Representa una geometría de <em>Linestring</em>. Consta de una lista de Nodes identificados por su <em>Id</em> y una lista de etiquetas. Un ejemplo de Way en formato <em>OSM</em>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>&lt;way id=&quot;5090250&quot; visible=&quot;true&quot; timestamp=&quot;2009-01-19T19:07:25Z&quot; version=&quot;8&quot;
+      changeset=&quot;816806&quot; user=&quot;Blumpsy&quot; uid=&quot;64226&quot;&gt;
+  &lt;nd ref=&quot;822403&quot;/&gt;
+  &lt;nd ref=&quot;21533912&quot;/&gt;
+  &lt;nd ref=&quot;821601&quot;/&gt;
+  &lt;nd ref=&quot;21533910&quot;/&gt;
+  &lt;nd ref=&quot;135791608&quot;/&gt;
+  &lt;nd ref=&quot;333725784&quot;/&gt;
+  &lt;nd ref=&quot;333725781&quot;/&gt;
+  &lt;nd ref=&quot;823771&quot;/&gt;
+  &lt;tag k=&quot;highway&quot; v=&quot;residential&quot;/&gt;
+  &lt;tag k=&quot;name&quot; v=&quot;Clipstone Street&quot;/&gt;
+  &lt;tag k=&quot;oneway&quot; v=&quot;yes&quot;/&gt;
+&lt;/way&gt;
+</pre></div>
+</div>
+<p>Si el último punto de un Way coincide con el primero, entonces se trata de una línea cerrada. Según el valor de las etiquetas puede tratarse de un area o simplemente deuna línea cerrada.</p>
+</div>
+<div class="section" id="relation">
+<h2>2.3. Relation<a class="headerlink" href="#relation" title="Permalink to this headline">¶</a></h2>
+<p>Sirven para representar entidades más complejas. Consta de una lista de elementos <em>member</em> cada uno de los cuales tiene su <em>type</em>, su <em>id</em> y su <em>role</em>, y una lista de etiquetas. Las <em>Relations</em> aceptadas por los renderers se pueden consultar en:</p>
+<p><a class="reference external" href="http://wiki.openstreetmap.org/wiki/Types_of_relation">http://wiki.openstreetmap.org/wiki/Types_of_relation</a></p>
+<p>Una <em>Relation</em> de uso común es la <em>multipolygon</em>, con sus <em>roles</em> <em>outer</em> e <em>inner</em> que permite definir edificios u otras superficies con huecos. Un ejemplo sería:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>&lt;relation id=&quot;1&quot;&gt;
+  &lt;tag k=&quot;type&quot; v=&quot;multipolygon&quot; /&gt;
+  &lt;member type=&quot;way&quot; id=&quot;1&quot; role=&quot;outer&quot; /&gt;
+  &lt;member type=&quot;way&quot; id=&quot;2&quot; role=&quot;inner&quot; /&gt;
+&lt;/relation&gt;
+</pre></div>
+</div>
+<a class="reference internal image-reference" href="_images/multipolygon.png"><img alt="multipolygon" class="align-center" src="_images/multipolygon.png" style="width: 400px;" /></a>
+<p>Hay combinaciones más complejas de <em>multipolygon</em>. La <em>Relation</em> <em>multipolygon</em> se puede consultar en el siguiente enlace:</p>
+<p><a class="reference external" href="http://wiki.openstreetmap.org/wiki/Relation:multipolygon">http://wiki.openstreetmap.org/wiki/Relation:multipolygon</a></p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">2. Estructura de la información en OSM</a><ul>
+<li><a class="reference internal" href="#node">2.1. Node</a></li>
+<li><a class="reference internal" href="#way">2.2. Way</a></li>
+<li><a class="reference internal" href="#relation">2.3. Relation</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="intro.html"
+                        title="previous chapter">1. Introducción</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="descargaosm.html"
+                        title="next chapter">3. Descarga de datos desde OpenStreetMap</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/primitivas.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="descargaosm.html" title="3. Descarga de datos desde OpenStreetMap"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="intro.html" title="1. Introducción"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">DownloadOSMData 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2016, Santiago Higuera.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.5.
+    </div>
+  </body>
+</html>

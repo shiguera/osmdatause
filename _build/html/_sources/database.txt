@@ -1,0 +1,171 @@
+.. database
+
+Database
+========
+
+Hemos visto en un apartado anterior cómo descargar datos de OSM. Supondremos que el resultado de las diferentes formas de descarga será un fichero en formato .osm (XML).
+
+En este apartado veremos qué herramientas hay para poder exportar la información de OSM a bases de datos para su posterior análisis y manipulación.
+
+Elección de la base de datos
+----------------------------
+
+Hay varios sistemas de bases de datos que se pueden utilizar para operar con datos de OSM
+
+* PostgreSQL : Puede manejar conjuntos de datos muy extensos. La extensión Postgis permite la utilización de algoritmia espacial. Necesita disponer de una instalación de servidor. Es la base de datos que utiliza la API de OSM y el renderizador Mapnik
+
+* MySQL: también permite la utilización de grandes conjuntos de datos,pero no tiene extensiones espaciales. Necesita también una instalación de servidor. Era la base de datos utilizada por el API de OSM hasta la versión actual, la 0.6 , que comenzó a utilizar Postgresql.
+
+* SQLite: es pequeña y no necesita servidor. Puede dar problemas al manejar grandes volúmenes de datos
+
+* Otras BD: MonetDB, CouchDB, MongoDB, Hadoop
+ 
+Database Schemas 
+----------------
+
+OSM uses different database schemas for different applications.
+
+Updatable
+Whether the schema supports updating with OsmChange format "diffs".
+This can be extremely important for keeping world-wide databases up-to-date, as it allows the database to be kept up-to-date without requiring a complete (and space- and time-consuming) full, worldwide re-import. However, if you only need a small extract, then re-importing that extract may be a quicker and easier method to keep up-to-date than using the OsmChange diffs.
+
+Geometries
+Whether the schema has pre-built geometries.
+Some database schemas provide native (e.g: PostGIS) geometries, which allows their use in other pieces of software which can read those geometry formats. Other database schemas may provide enough data to produce the geometries (e.g: nodes, ways, relations and their linkage) but not in a native format. Some can provide both. If you want to use the database with other bits of software such as a GIS editor then you probably want a schema with these geometries pre-built. However, if you are doing your own analysis, or are using software which is written to use OSM node/way/relations then you may not need the geometries.
+
+Lossless
+Whether the full set of OSM data is kept.
+Some schemas will retain the full set of OSM data, including versioning, user IDs, changeset information and all tags. This information is important for editors, and may be of importance to someone doing analysis. However, if it is not important then it may be better to choose a "lossy" schema, as it is likely to take up less disk space and may be quicker to import.
+
+hstore columns
+Whether the schema uses a key-value pair datatype for tags. (This datatype is called hstore in PostgreSQL.)
+hstore is perhaps the most straightforward approach to represent OSM's freeform tagging in PostgreSQL. However, not all tools use it and other databases might not have (or need) an equivalent.
+
+.. image:: _static/osm_database_schemas.png
+   :width: 800px
+   :alt: OSM Database Schemas
+
+osm2pgsql
+---------
+
+osm2pgsql schema has historically been the standard way to import OSM data for use in rendering software such as Mapnik. It also has uses in analysis, although the schema does not support versioning or history directly. The import is handled by the Osm2pgsql software, which has two modes of operation, slim and non-slim, which control the amount of memory used by the software during import and whether it can be updated. Slim mode supports updates, but time taken to import is highly dependent on disk speed and may take several days for the full planet, even on a fast machine. Non-slim mode is faster, but does not support updates and requires a vast amount of memory.
+
+The import process is lossy, and controlled by a configuration file in which the keys of elements of interest are listed. The values of these "interesting" elements are imported as columns in the points, lines and polygons tables. (Alternatively, values of all tags can be imported into a "hstore" type column.) These tables can be very large, and care must be paid to get good indexed performance. If the set of "interesting" keys changes after the import and no hstore column has been used, then the import must be re-run.
+
+For more information, please see the Osm2pgsql page.
+
+apidb 
+-----
+
+ApiDB is a schema designed to replicate the storage of OSM data in the same manner as the main API schema and can be produced using the Osmosis commands for writing ApiDBs or updating ApiDBs with changes. This schema does not have any native geometry, although in the nodes, ways and relations tables there is enough data to reconstruct the geometries.
+
+This schema does support history, although the import process does not, so it can be used for mirroring of the main OSM DB. A history will be generated as replication diffs are applied.
+
+The import process, even on good hardware, can take several weeks for the full planet. The database will take approximately 1 TB as of April 2012.
+
+For more information, please see the detailed usage page for Osmosis.
+
+pgsnapshot 
+----------
+
+The pgsnapshot schema is a modified and simplified version of the main OSM DB schema which provides a number of useful features, including generating geometries and storing tags in a single hstore column for easier use and indexing. JXAPI's schema is built on pgsnapshot.
+
+imposm 
+------
+
+Imposm is an import tool, and is able to generate schemas using a mapping which is fully configurable (there is also a good default for most use-cases). As such it really shouldn't count as its own schema, but it needed fitting in somehow. The ability to break data out thematically into different tables greatly simplifies the problem of indexing performance, and may result in smaller table and index sizes on-disk.
+
+Imposm is faster to import than Osm2pgsql in slim mode, but does not provide updatability.
+
+nominatim 
+---------
+
+Nominatim is a geocoder where the database is produced by a special back-end of Osm2pgsql. It is a special-purpose database, and may not be suitable for other problem domains such as rendering or routing. The development overview gives information on some of the innards. 
+
+Nominatim's database is notoriously hard to set up, so you may want to try one of the pre-indexed data releases first. Files no longer available.
+
+ogr2ogr 
+-------
+
+The OGR library can read OSM data (XML and PBF) and can write into various other formats, including PostgreSQL/PostGIS, SQLite/Spatialite, and MS SQL databases (though I've tried only PostGIS). The ogr2ogr utility can do the conversion without any programming necessary with a schema configuration that's reminiscent of osm2pgsql. One interesting feature is that it resolves relations into geometries: OSM multipolygons and boundaries become OGC MultiPolygon, OSM multilinestrings and routes become OGC MultiLineString, and other OSM relations become OGC GeometryCollection.
+
+It is listed as lossy because membership info, such as nodes in ways and relation members, is not preserved. Metadata is optional. Untagged/unused nodes and ways are optional.
+
+overpass 
+--------
+
+The Overpass_API is a query language built on top of a custom back-end database with software called OSM3S (see OSM3S/install for install and setup instructions). This is a custom database and it is therefore hard to compare it with other database schemas. You could recreate the complete planet file from the database. It is geared to have good performance on locally concentrated datasets.
+
+osmsharp 
+--------
+
+OsmSharp is a toolbox of OSM-related routines, including some to import OSM data into Oracle databases.
+
+mongosm 
+-------
+
+MongOSM is a set of Python scripts for importing, querying and (maybe) keeping up-to-date OSM data in a MongoDB database.
+
+node-mongosm 
+------------
+
+Inspired by mongOSM, Node-MongOSM uses Mongoose to provide schemas and insert vs upsert options via a command line interface.
+
+goosm 
+-----
+
+Goosm is an application written in go for importing OSM XML files into MongoDB.  It imports in two passes, first for the nodes, and second the ways.  Nodes are imported as Geo-JSON points, and ways are imported as Geo-JSON lines.  Both of the collections created are indexed with geo-spatial indicies enabling fast searching.
+
+waychange 
+---------
+
+This simple database schema has been created to store temporaly nodes, ways, tags, relations and the relations between nodes and ways as well as between relations and its members in a PostgreSQL database. It will be used with a PHP script to split and update ways with the official street keys in the north eastern part of Germany. The script load osm data via API into the database and create changeset files from that data together with manually created nodes that splitting of ways of into parts. Those parts matches with the official streets and its keys, categories and nummbers. The ways have no changes in geographic position, therefore no PostGIS columns are necessary. The update add tags to ways and if ways has been splitted off it change the node lists, add new nodes and ways and changes the list of members of relations. This database schema stores only the parts that we need to create the changeset. The spatial relationship between official streets and the osm ways has been calculated in a separate custum database schema with osm ways and its geometry in PostGIS columns. However its also possible to add geometry colums to this waychange schema.
+Feel free to uses this schema and to contact the OSM Community in Mecklenburg-Western Pomerania and streetkeysmv user 
+
+.. code-block:: postgresql
+
+  CREATE SCHEMA osm;
+  CREATE TABLE osm.nodes
+  (
+    id integer NOT NULL,
+    CONSTRAINT nodes_pkey PRIMARY KEY (id)
+  );
+  CREATE TABLE osm.ways
+  (
+    id integer NOT NULL,
+    visible boolean,
+    version integer,
+    CONSTRAINT ways_pkey PRIMARY KEY (id)
+  );
+  CREATE TABLE osm.relations
+  (
+    id integer NOT NULL,
+    visible boolean,
+    version integer,
+    CONSTRAINT relations_pkey PRIMARY KEY (id)
+  );
+  CREATE TABLE osm.way_nodes
+  (
+    way_id integer NOT NULL,
+    node_id integer NOT NULL,
+    nodes_order integer,
+    CONSTRAINT way_nodes_pkey PRIMARY KEY (way_id, node_id)
+  );
+  CREATE TYPE osm.entry_type AS ENUM ('node', 'way', 'relation');
+  CREATE TABLE osm.tags
+  (
+    entry_id integer NOT NULL,
+    entry_type osm.entry_type NOT NULL,
+    k character varying,
+    v character varying,
+    CONSTRAINT tags_pkey PRIMARY KEY (entry_id, entry_type)
+  );
+  CREATE TABLE osm.relation_members
+  (
+    relation_id integer NOT NULL,
+    entry_id integer NOT NULL,
+    entry_type osm.entry_type NOT NULL,
+    role character varying,
+    member_order integer,
+    CONSTRAINT relation_members_pkey PRIMARY KEY (relation_id, entry_id, entry_type)
+  );
